@@ -43,8 +43,7 @@ app.post("/render", async (req, res) => {
         "--no-zygote",
         "--single-process",
         "--disable-gpu"
-      ],
-      executablePath: process.env.CHROME_PATH || '/usr/bin/google-chrome' // Adjust path for Render
+      ]
     });
 
     const page = await browser.newPage();
