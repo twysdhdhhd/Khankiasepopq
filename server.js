@@ -34,7 +34,17 @@ app.post("/render", async (req, res) => {
 
     const browser = await puppeteer.launch({
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--no-first-run",
+        "--no-zygote",
+        "--single-process",
+        "--disable-gpu"
+      ],
+      executablePath: process.env.CHROME_PATH || '/usr/bin/google-chrome' // Adjust path for Render
     });
 
     const page = await browser.newPage();
@@ -65,7 +75,7 @@ app.post("/render", async (req, res) => {
 
     res.json({ mp4_url: `${req.protocol}://${req.get("host")}/rendered_videos/${path.basename(videoPath)}` });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Puppeteer failed", details: error.message });
   }
 });
 
