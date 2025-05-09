@@ -8,8 +8,8 @@ const app = express();
 app.use(express.json());
 
 app.post("/render", async (req, res) => {
-    const { lottieUrl } = req.body;
-    if (!lottieUrl) {
+    const { lottie_url } = req.body;
+    if (!lottie_url) {
         return res.status(400).json({ error: "Lottie URL is required" });
     }
 
@@ -23,7 +23,7 @@ app.post("/render", async (req, res) => {
 
         console.log("Browser launched, opening page...");
         const page = await browser.newPage();
-        await page.goto(lottieUrl, { waitUntil: "networkidle0" });
+        await page.goto(lottie_url, { waitUntil: "networkidle0" });
 
         console.log("Page loaded, starting screenshot...");
         const videoPath = path.join(__dirname, `${uuidv4()}.mp4`);
