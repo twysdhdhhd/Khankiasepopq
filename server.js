@@ -29,7 +29,7 @@ async function convertLottieToMP4(lottieUrl) {
 }
 
 // Convert Route (Use /render if you prefer)
-app.post('/convert', async (req, res) => {
+app.post('/render', async (req, res) => {
   const { lottie_url } = req.body;
 
   if (!lottie_url) {
