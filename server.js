@@ -1,57 +1,44 @@
 const express = require('express');
 const puppeteer = require('puppeteer');
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
 const uuid = require('uuid');
-const axios = require('axios');
 const app = express();
 
-// Serve rendered videos
-app.use('/rendered_videos', express.static(path.join(__dirname, 'rendered_videos')));
+app.use(express.json());
 
-// Function to download the Lottie JSON from the provided URL
-async function downloadLottieJSON(url) {
-  const response = await axios.get(url);
-  return response.data;
-}
+const OUTPUT_DIR = './rendered_videos';
+fs.ensureDirSync(OUTPUT_DIR);
 
-// Function to convert Lottie JSON to video using Puppeteer
-async function convertLottieToMP4(lottieJson) {
+async function convertLottieToMP4(lottieUrl) {
   const browser = await puppeteer.launch({
-    executablePath: '/usr/bin/google-chrome', // Explicit path to Chromium
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
-
   const page = await browser.newPage();
-  await page.setContent('<html><body><div id="lottie"></div></body></html>');
+  
+  // Navigate to the Lottie URL
+  await page.goto(lottieUrl);
 
-  await page.addScriptTag({ url: 'https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.6/lottie.min.js' });
+  // Wait for the animation to load and render
+  await page.waitForSelector('lottie-player');
 
-  // Inject Lottie animation into page
-  await page.evaluate((lottieJson) => {
-    const animationData = JSON.parse(lottieJson);
-    const animation = lottie.loadAnimation({
-      container: document.getElementById('lottie'),
-      renderer: 'svg',
-      loop: true,
-      autoplay: true,
-      animationData: animationData
-    });
-  }, JSON.stringify(lottieJson));
+  // Take a screenshot of the rendered animation
+  const mp4Path = path.join(OUTPUT_DIR, `${uuid.v4()}.mp4`);
 
-  // Set up a screenshot or video capture of the rendered animation
-  const videoPath = path.join(__dirname, 'rendered_videos', `${uuid.v4()}.mp4`);
+  // Set up the Puppeteer command to capture the animation and convert to mp4
+  // This part would involve creating frames or recording the animation
+  // You may need additional code to render frames from the animation
 
-  // Capture frames and convert to video (You may need to adjust this part for actual video rendering)
-  await page.screenshot({ path: videoPath });
+  // Example placeholder, add the actual rendering code here
+  await page.screenshot({ path: `${mp4Path.replace('.mp4', '.png')}` });
 
   await browser.close();
-  return videoPath;
+
+  return mp4Path;
 }
 
-// API route to convert Lottie JSON to MP4
-app.post('/convert', express.json(), async (req, res) => {
+app.post('/convert', async (req, res) => {
   const { lottie_url } = req.body;
 
   if (!lottie_url) {
@@ -59,16 +46,16 @@ app.post('/convert', express.json(), async (req, res) => {
   }
 
   try {
-    const lottieJson = await downloadLottieJSON(lottie_url);
-    const mp4Path = await convertLottieToMP4(lottieJson);
-    res.json({ mp4_url: `${req.protocol}://${req.get('host')}/rendered_videos/${path.basename(mp4Path)}` });
+    const mp4Path = await convertLottieToMP4(lottie_url);
+    
+    // Serve the video via URL
+    res.status(200).json({ mp4_url: `https://lottie-puppeteer.onrender.com/rendered_videos/${path.basename(mp4Path)}` });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Start the server
-const port = process.env.PORT || 8080;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+app.listen(8080, () => {
+  console.log('Server is running on http://localhost:8080');
 });
