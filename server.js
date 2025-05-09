@@ -13,13 +13,9 @@ fs.ensureDirSync(OUTPUT_DIR);
 
 // Convert Lottie to MP4
 async function convertLottieToMP4(lottieUrl) {
-  const browserFetcher = puppeteer.createBrowserFetcher();
-  const revisionInfo = await browserFetcher.download("127.0.6533.88"); // Ensure this version is downloaded
-
   const browser = await puppeteer.launch({
-    executablePath: revisionInfo.executablePath,
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
   const page = await browser.newPage();
