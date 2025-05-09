@@ -10,7 +10,7 @@ app.use(express.json());
 const OUTPUT_DIR = "./rendered_videos";
 fs.ensureDirSync(OUTPUT_DIR);
 
-app.post("/convert", async (req, res) => {
+app.post("/render", async (req, res) => {
   const { lottie_url } = req.body;
   if (!lottie_url) {
     return res.status(400).json({ error: "Lottie URL is required" });
